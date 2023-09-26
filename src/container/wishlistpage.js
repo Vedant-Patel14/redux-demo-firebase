@@ -6,6 +6,7 @@ import Navbar from "../component/navbar";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import { toggleWishlist } from "../redux/reducers/wishlistslice";
+import { Helmet } from "react-helmet";
 
 const useStyles = makeStyles({
   card: {
@@ -44,6 +45,9 @@ const WishlistPage = () => {
   console.log(wishlist);
   return (
     <>
+      <Helmet>
+        <title>Wishlist page</title>
+      </Helmet>
       <Navbar />
       <div
         className="container"

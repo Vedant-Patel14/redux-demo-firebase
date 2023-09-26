@@ -9,6 +9,8 @@ import ProductDetails from "../container/productDetails";
 import PrivateRoute from "../utils/privateRoute";
 import AuthRoute from "../utils/authRoute";
 import Profile from "../container/profile";
+import CheckOut from "../container/checkout";
+import Checkout from "../container/checkout";
 
 const Routing = () => {
   return (
@@ -32,6 +34,10 @@ const Routing = () => {
 
         <Route path="/profile/*" element={<PrivateRoute />}>
           <Route index element={<Profile />} />
+        </Route>
+
+        <Route path="/checkout/*" element={<PrivateRoute />}>
+          <Route index element={<Checkout />} />
         </Route>
 
         <Route path="/product/:productId" element={<ProductDetails />} />

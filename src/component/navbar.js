@@ -38,7 +38,7 @@ const useStyles = makeStyles((theme) => ({
     marginLeft: "0px",
   },
   navbar: {
-    backgroundColor: "#b88bf72f",
+    backgroundColor: "#dbb6b6",
     position: "sticky",
     top: 0,
     zIndex: 100,

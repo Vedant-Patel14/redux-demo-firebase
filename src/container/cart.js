@@ -18,9 +18,12 @@ import { toggleWishlist } from "../redux/reducers/wishlistslice";
 import "../style/card.css";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-
-
 import useFetch from "../hooks/useFetch";
+import { Helmet } from "react-helmet-async";
+import 'react-lazy-load-image-component/src/effects/blur.css';
+import { LazyLoadImage } from "react-lazy-load-image-component";
+
+
 const useStyles = makeStyles({
   card: {
     display: "flex",
@@ -52,9 +55,9 @@ const useStyles = makeStyles({
     marginLeft: "1rem",
   },
 
-  title:{
-    fontWeight:"500"
-  }
+  title: {
+    fontWeight: "500",
+  },
 });
 
 const Cart = () => {
@@ -65,11 +68,13 @@ const Cart = () => {
 
   const { data: fetchData, loading, error } = useFetch("products");
   const productData = fetchData;
-  console.log(productData , error);
+  console.log(productData, error);
   // const auth = getAuth(app)
 
   const auth = useSelector((state) => state.auth.isAuthenticated);
   console.log(auth);
+
+
   const handleAddToCart = (product) => {
     if (auth) {
       dispatch(addToCart(product));
@@ -87,8 +92,11 @@ const Cart = () => {
   };
   return (
     <>
-      <div> 
-        {loading ? ( 
+      <Helmet>
+        <title>Home page</title>
+      </Helmet>
+      <div>
+        {loading ? (
           <Box
             sx={{
               display: "flex",
@@ -113,15 +121,14 @@ const Cart = () => {
                         to={`/product/${product.id}`}
                         style={{ textDecoration: "none", color: "black" }}
                       >
-                        <div
-                          style={{ display: "flex", justifyContent: "center" }}
-                        >
-                          <img
-                            src={product.image}
-                            alt=""
-                            className={classes.img}
-                          />
-                        </div>          
+                        <LazyLoadImage
+                          src={product.image}
+                          alt=""
+                          className={classes.img}
+                          effect="blur"
+                          width="100%"
+                          height="auto"
+                        />
                         <CardContent>
                           <h3 className={classes.title}>
                             <b>Category:</b> {product.category}
@@ -138,7 +145,7 @@ const Cart = () => {
                       <div className={classes.addToCart}>
                         <IconButton
                           aria-label="add to wishlist"
-                          onClick={() => handleAddToWishlist(product)}
+                          onClick={() => handleAddToWishlist (product)}
                           className={classes.wishlist}
                         >
                           {wishlist.some((item) => item.id === product.id) ? (

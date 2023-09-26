@@ -1,16 +1,19 @@
 import { makeStyles } from "@mui/styles";
 import React, { useState } from "react";
-import { useSelector } from "react-redux"; 
+import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { authenticate } from "../redux/reducers/authSlice";
-import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup  } from "firebase/auth";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+} from "firebase/auth";
 import { app } from "../firebase/firebase";
 import { Button } from "@mui/material";
-import { getFirestore,  setDoc, doc } from 'firebase/firestore'
-
-
-
+import { getFirestore, setDoc, doc, getDoc } from "firebase/firestore";
+import { Helmet } from "react-helmet";
 
 const useStyles = makeStyles(() => ({
   App: {
@@ -66,29 +69,45 @@ const Login = () => {
   const users = useSelector((state) => state.registration.users);
   const firestore = getFirestore(app);
   const auth = getAuth(app);
-  console.log('auth', auth)
+  console.log("auth", auth);
 
-  const userRef = async (uid, email , displayName , photoURL , phoneNumber) => {
+  const userRef = async (uid, email, displayName, photoURL, phoneNumber) => {
+    const userDocRef = doc(firestore, "users", uid);
     try {
-      const result = await setDoc(doc(firestore, 'users', uid ), {
-        uid:uid,
-        email: email,
-        displayName: displayName,
-        photoURL:photoURL,
-        phoneNumber:phoneNumber
-      });
-      console.log('Document added successfully:', result);
+      const userDocSnapshot = await getDoc(userDocRef);
+      if (!userDocSnapshot.exists()) {
+        const result = await setDoc(userDocRef, {
+          uid: uid,
+          email: email,
+          displayName: displayName,
+          photoURL: photoURL,
+          phoneNumber: phoneNumber,
+        });
+        console.log("Document added successfully:", result);
+      } else {
+        console.log(
+          "User document with UID",
+          uid,
+          "already exists. Skipping document creation."
+        );
+      }
     } catch (error) {
-      console.log('Error adding document:', error);
+      console.log("Error adding/checking user document:", error);
     }
   };
-  
+
   const signinUser = () => {
     signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
         const user = userCredential.user;
         dispatch(authenticate({ user }));
-        userRef(user.uid, user.email , user.displayName , user.photoURL , user.phoneNumber); 
+        userRef(
+          user.uid,
+          user.email,
+          user.displayName,
+          user.photoURL,
+          user.phoneNumber
+        );
         console.log("Sign in success");
         navigate("/");
       })
@@ -96,14 +115,21 @@ const Login = () => {
         console.log("Sign in error:", error);
       });
   };
-  
+
   const signinWithGoogle = () => {
     const googleProvider = new GoogleAuthProvider();
     signInWithPopup(auth, googleProvider)
       .then((userCredential) => {
         const googleUser = userCredential.user;
         dispatch(authenticate({ user: googleUser }));
-        userRef(googleUser.uid, googleUser.email , googleUser.displayName ,  googleUser.photoURL , googleUser.phoneNumber ); 
+        userRef(
+          googleUser.uid,
+          googleUser.email,
+          googleUser.displayName,
+          googleUser.photoURL,
+          googleUser.phoneNumber
+        );
+        console.log("googleUser", googleUser);
         console.log("Google Sign in success");
         navigate("/");
       })
@@ -112,52 +138,68 @@ const Login = () => {
       });
   };
 
-  
   const handleHome = () => {
     navigate("/");
   };
 
   return (
-    <div className={classes.App}>
-      <div className={classes.loginForm}>
-        <h4 className={classes.formTitle}>Login</h4>
-        <div>
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className={classes.formControl}
-          />
-          <input
-            type="password"
-            placeholder="Enter password"
-            name="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className={classes.formControlInput}
-          />
-          <div className={classes["button-container"]}>
-            <Button
-              variant="contained"
-              className={classes["login-btn"]}
-              onClick={signinUser}
-              style={{ marginTop: "11px" }}
-            >
-              Login
-            </Button>
-            <Button variant="contained" style={{ marginTop: "12px", height: "26px" }} onClick={handleHome}>Home</Button>
-          </div>
+    <>
+      <Helmet>
+        <title>Login page</title>
+      </Helmet>
+      <div className={classes.App}>
+        <div className={classes.loginForm}>
+          <h4 className={classes.formTitle}>Login</h4>
           <div>
-            <Button variant="contained" onClick={signinWithGoogle} style={{ width: "100%", marginTop: "10px", height: "30px" }}>Sign In With Google</Button>
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={classes.formControl}
+            />
+            <input
+              type="password"
+              placeholder="Enter password"
+              name="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={classes.formControlInput}
+            />
+            <div className={classes["button-container"]}>
+              <Button
+                variant="contained"
+                className={classes["login-btn"]}
+                onClick={signinUser}
+                style={{ marginTop: "11px" }}
+              >
+                Login
+              </Button>
+              <Button
+                variant="contained"
+                style={{ marginTop: "12px", height: "26px" }}
+                onClick={handleHome}
+              >
+                Home
+              </Button>
+            </div>
+            <div>
+              <Button
+                variant="contained"
+                onClick={signinWithGoogle}
+                style={{ width: "100%", marginTop: "10px", height: "30px" }}
+              >
+                Sign In With Google
+              </Button>
+            </div>
+            <p style={{ marginTop: "12px", fontSize: "17px" }}>
+              Don't have an account? <a href="/registration">Register here</a>.
+            </p>
           </div>
-          <p style={{ marginTop: "12px", fontSize: "17px" }}>
-            Don't have an account? <a href="/registration">Register here</a>.
-          </p>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

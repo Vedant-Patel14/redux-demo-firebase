@@ -1,13 +1,19 @@
-import React, {  useState } from "react";
+import React, { useState } from "react";
 import { makeStyles } from "@mui/styles";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { registerUser } from "../redux/reducers/registrationSlice";
 import { useFormik } from "formik";
 import { signUpSchema } from "../schemas";
-import {getAuth , createUserWithEmailAndPassword , GoogleAuthProvider , signInWithPopup} from "firebase/auth";
-import {app } from "../firebase/firebase";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+} from "firebase/auth";
+import { app } from "../firebase/firebase";
 import { Button } from "@mui/material";
+import { Helmet } from "react-helmet";
 
 const useStyles = makeStyles(() => ({
   app: {
@@ -64,14 +70,18 @@ const Registration = () => {
 
   const [registrationError, setRegistrationError] = useState(null);
 
-  const auth = getAuth(app)
+  const auth = getAuth(app);
   const googleProvider = new GoogleAuthProvider();
 
   const signupUser = async () => {
     try {
-      const {  email, password } = values;
-       const response = await createUserWithEmailAndPassword(auth, email, password);
-       console.log(response)
+      const { email, password } = values;
+      const response = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      console.log(response);
       navigate("/login");
     } catch (error) {
       console.error(error);
@@ -80,11 +90,10 @@ const Registration = () => {
   };
 
   const signupWithGoggle = () => {
-    signInWithPopup(auth , googleProvider)
-  }
+    signInWithPopup(auth, googleProvider);
+  };
 
-
-  const users = useSelector((state) => state.registration.users); 
+  const users = useSelector((state) => state.registration.users);
 
   const formik = useFormik({
     initialValues,
@@ -93,7 +102,7 @@ const Registration = () => {
       const newUser = {
         username: values.name,
         password: values.password,
-        email: values.email ,
+        email: values.email,
         confirmPassword: values.confirmPassword,
       };
 
@@ -111,7 +120,8 @@ const Registration = () => {
       }
     },
   });
-  const { values, handleChange, handleBlur, handleSubmit, errors, touched } = formik;
+  const { values, handleChange, handleBlur, handleSubmit, errors, touched } =
+    formik;
 
   const handlehome = () => {
     navigate("/");
@@ -120,6 +130,9 @@ const Registration = () => {
   console.log(values);
   return (
     <>
+      <Helmet>
+        <title>Registration page</title>
+      </Helmet>
       <form onSubmit={handleSubmit}>
         <div className={classes.app}>
           <div className={classes.registration}>
@@ -183,9 +196,16 @@ const Registration = () => {
                 marginTop: "-5px",
               }}
             >
-              <Button variant="contained" style={{marginTop:"11px"}}  className={classes.loginBtn} onClick={signupUser}>Register</Button>
               <Button
-                variant="contained" 
+                variant="contained"
+                style={{ marginTop: "11px" }}
+                className={classes.loginBtn}
+                onClick={signupUser}
+              >
+                Register
+              </Button>
+              <Button
+                variant="contained"
                 style={{ marginTop: "12px", height: "26px" }}
                 onClick={handlehome}
               >
@@ -193,13 +213,19 @@ const Registration = () => {
               </Button>
             </div>
             <div>
-              <Button variant="contained" onClick={signupWithGoggle} style={{width:"100%" , marginTop:"10px" ,  height:"30px"}}>Sign Up With Goggle</Button>
+              <Button
+                variant="contained"
+                onClick={signupWithGoggle}
+                style={{ width: "100%", marginTop: "10px", height: "30px" }}
+              >
+                Sign Up With Goggle
+              </Button>
             </div>
             <p>
               Already have an account? <Link to="/login">Login here</Link>
             </p>
           </div>
-        </div>  
+        </div>
       </form>
     </>
   );

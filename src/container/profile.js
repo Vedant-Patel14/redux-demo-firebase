@@ -28,7 +28,7 @@ const Profile = () => {
         .then((docSnapshot) => {
           if (docSnapshot.exists()) {
             const userData = docSnapshot.data();
-
+            userData.phoneNumber = userData.phoneNumber || "no number" ;
             userData.photoURL = userData.photoURL || defaultImageUrl;
             setUserData(userData);
           } else {

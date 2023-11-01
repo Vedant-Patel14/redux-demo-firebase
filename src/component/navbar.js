@@ -3,6 +3,7 @@ import { CartDash } from "react-bootstrap-icons";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import {
   Badge,
+  Box,
   IconButton,
   Menu,
   MenuItem,
@@ -53,17 +54,14 @@ const Navbar = () => {
   const cart = useSelector((state) => state.cart.cart);
   const total = cart.length;
   const auth = getAuth(app);
-  console.log("auth", auth);
   const totalWishlistItems = wishlist.length;
   const [anchorEl] = useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState(null);
-
   const isMenuOpen = Boolean(anchorEl);
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
-
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
-  const user = useSelector((state) => state.auth.user);
-  console.log(user);
+  const user = useSelector((state) => state.auth);
+  console.log("user", user);
 
   const handleMobileMenuOpen = (event) => {
     setMobileMoreAnchorEl(event.currentTarget);
@@ -82,13 +80,22 @@ const Navbar = () => {
   };
 
   const handleProfileClick = () => {
-    navigate("/profile")
-  }
+    navigate("/profile");
+  };
+
+  const handleOrders = () => {
+    navigate("/orders");
+  };
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [displayTypography, setDisplayTypography] = useState(true);
 
+  const isAdmin =
+    user && (user.admin === "admin1@gmail.com" || user.role === "admin");
+  console.log("isAdmin", isAdmin);
+  console.log("user", user.role);
   return (
     <>
       <div className={classes.navbar}>
@@ -189,6 +196,13 @@ const Navbar = () => {
       >
         {isAuthenticated ? (
           <div>
+            {isAdmin && (
+              <MenuItem sx={{ display: "flex", flexDirection: "column" }}>
+                <div>
+                  <h4 onClick={handleOrders}>Orders</h4>
+                </div>
+              </MenuItem>
+            )}
             <MenuItem
               onClick={handleProfileClick}
               sx={{ display: "flex", flexDirection: "column" }}

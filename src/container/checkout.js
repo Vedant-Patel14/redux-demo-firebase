@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -24,7 +24,12 @@ import phonepay from "../assests/phonepe.svg";
 import SuccessImage from "../assests/Success image.png";
 import SendIcon from "@mui/icons-material/Send";
 import { db } from "../firebase/firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { auth } from "../firebase/firebase";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import { collection, doc, setDoc, getDoc } from "firebase/firestore";
+
+
 
 const Checkout = () => {
   const [selectedValue, setSelectedValue] = useState("");
@@ -36,38 +41,114 @@ const Checkout = () => {
   const checkout = useSelector((state) => state.cart.cart);
   const [cvv, setCvv] = useState("");
   const [cardHolderName, setCardHolderName] = useState("");
-  const userRef = doc(db, "Orders", uid);
+  const [Order, setOrder] = useState("");
+  const [isPurchaseDisabled, setIsPurchaseDisabled] = useState(true);
+  const [saveCardForFuture, setSaveCardForFuture] = useState(false);
 
-  
-  const handleOpen = () => {
-    if (!selectedValue) {
-      alert("Please select a payment method.");
+  const handleOpen = async () => {
+  const user = auth.currentUser;
+  if (!user) {
+    alert("Please log in to make a purchase.");
+    return;
+  }
+
+  if (!selectedValue) {
+    alert("Please select a payment method.");
+    return;
+  }
+
+  if (selectedValue === "creditCard") {
+    if (!cardNumber || !cardHolderName || !cvv) {
+      alert("Please fill in all credit card details.");
       return;
     }
+  }
+
+  setLoading(true);
+
+  try {
+    if (!user || !user.uid) {
+      throw new Error("User not authenticated or UID missing.");
+    }
+
+    const orderData = {
+      uid: user.uid,
+      paymentMethod: selectedValue,
+      cardNumber: saveCardForFuture ? cardNumber : "",
+      cardHolderName: saveCardForFuture ? cardHolderName : "",
+      cvv: saveCardForFuture ? cvv : "",
+      items: checkout,
+      subtotal: calculateSubtotal().toFixed(2),
+      tax: tax(),
+      total: totalAmount(),
+    };
+
+    const userOrdersCollectionRef = collection(db, "orders", "userOrders", user.uid);
+    const userOrderDocRef = doc(userOrdersCollectionRef);
+
+    await setDoc(userOrderDocRef, orderData);
+
+    setLoading(false);
+    setOpen(true);
+  } catch (error) {
+    console.error("Error creating order: ", error);
+    setLoading(false);
+    alert("An error occurred while processing your order.");
+  }
+};
+
   
-    if (selectedValue === "creditCard") {
-      if (!cardNumber) {
-        alert("Please enter a card number.");
-        return;
-      }
-  
-      if (!cardHolderName) {
-        alert("Please enter a card holder name.");
-        return;
-      }
-  
-      if (!cvv) {
-        alert("Please enter the CVV code.");
-        return;
+
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      getSavedCardData(user.uid)
+        .then((savedCardData) => {
+          if (savedCardData) {
+            setCardNumber(savedCardData.cardNumber);
+            setCardHolderName(savedCardData.cardHolderName);
+            setCvv(savedCardData.cvv);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching saved card data: ", error);
+        });
+    }
+  }, []);
+
+
+const getSavedCardData = async (uid) => {
+  try {
+    const userOrdersCollectionRef = collection(db, "orders", "userOrders", uid);
+    const userOrderDocRef = doc(userOrdersCollectionRef);
+    const docSnapshot = await getDoc(userOrderDocRef);
+
+    if (docSnapshot.exists()) {
+      const orderData = docSnapshot.data();
+
+      if (orderData.paymentMethod === "creditCard" && orderData.cardNumber) {
+        return {
+          cardNumber: orderData.cardNumber,
+          cardHolderName: orderData.cardHolderName,
+          cvv: orderData.cvv,
+        };
       }
     }
 
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setOpen(true);
-    }, 2000);
-  };
+    return null;
+  } catch (error) {
+    console.error("Error fetching saved card data: ", error);
+    throw error;
+  }
+};
+
+  useEffect(() => {
+    const hasErrors =
+      selectedValue === "creditCard" &&
+      (!cardNumber || !cardHolderName || !cvv);
+
+    setIsPurchaseDisabled(!selectedValue || hasErrors);
+  }, [selectedValue, cardNumber, cvv, cardHolderName]);
 
   const handleClose = () => {
     setOpen(false);
@@ -120,10 +201,11 @@ const Checkout = () => {
   };
 
   const CardHolderNameTextField = () => {
-      const inputValue = event.target.value;
-      const sanitizedInput = inputValue.replace(/[^a-zA-Z\s]/g, '');
-      setCardHolderName(sanitizedInput);
+    const inputValue = event.target.value;
+    const sanitizedInput = inputValue.replace(/[^a-zA-Z\s]/g, "");
+    setCardHolderName(sanitizedInput);
   };
+
   return (
     <>
       <Helmet>
@@ -270,8 +352,24 @@ const Checkout = () => {
               </>
             )}
 
+            {/* <Box style={{padding:"12px"}}>
+              <TextField
+                fullWidth
+                id="outlined-basic"
+                label="Your Address"
+                variant="outlined"
+                // value={address}
+              >
+                Address
+              </TextField>
+            </Box> */}
+
             <Box>
-              <Checkbox color="success" />
+              <Checkbox
+                color="success"
+                checked={saveCardForFuture}
+                onChange={(e) => setSaveCardForFuture(e.target.checked)}
+              />
               <span>Save my card for the future</span>
             </Box>
 
@@ -396,7 +494,7 @@ const Checkout = () => {
                   <Button
                     variant="contained"
                     onClick={handleOpen}
-                    disabled={loading}
+                    disabled={isPurchaseDisabled}
                   >
                     {loading ? <CircularProgress size={24} /> : "Purchase"}
                   </Button>

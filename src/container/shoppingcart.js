@@ -13,6 +13,7 @@ import {
   IconButton,
   Typography,
 } from "@mui/material";
+import ReactDOM from "react-dom";
 import { useDispatch, useSelector } from "react-redux";
 import Navbar from "../component/navbar";
 import { Grid } from "@mui/material";
@@ -33,8 +34,6 @@ const useStyles = makeStyles({
   card: {
     display: "flex",
     flexDirection: "column",
-    height: "100%",
-    maxWidth: "550px",
     border: "2px solid black",
   },
   cardContent: {
@@ -61,10 +60,19 @@ const useStyles = makeStyles({
     marginBottom: "2rem",
   },
   billbook: {
-    position: "sticky",
-    top: "20px",
+    width:"50%",
     background: "#777777",
     height: "175px",
+  },
+  myPortalModal: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 
@@ -131,202 +139,204 @@ const CartPage = () => {
         >
           <h3>Your Cart</h3>
         </Typography>
-
         <Grid
           container
           spacing={2}
           sx={{ display: "flex", justifyContent: "center" }}
         >
-          <Grid item xs={12} md={6}>
-            {cart.length === 0 ? (
-              <Typography
-                variant="h6"
-                align="center"
-                style={{
-                  width: "100%",
-                  color: "rgb(255 13 13)",
-                  fontWeight: "1.25rem",
-                }}
+          {cart.length === 0 ? (
+            <Typography
+              variant="h6"
+              align="center"
+              style={{
+                width: "100%",
+                color: "rgb(255 13 13)",
+                fontWeight: "1.25rem",
+              }}
+            >
+              <p>Your Cart is Empty.</p>
+            </Typography>
+          ) : (
+            cart.map((product) => (
+              <Container
+                maxWidth="md"
+                key={product.id}
+                style={{ display: "flex", justifyContent: "center" }}
               >
-                <p>Your Cart is Empty.</p>
-              </Typography>
-            ) : (
-              cart.map((product) => (
-                <Container maxWidth="md" key={product.id}>
-                  <Card
-                    className={classes.card}
-                    sx={{
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      marginBottom: "10px",
-                    }}
-                  >
-                    <div style={{ marginLeft: "auto", height: "32px" }}>
-                      <IconButton
-                        aria-label="add to wishlist"
-                        onClick={() => dispatch(toggleWishlist(product))}
-                        className={classes.wishlist}
-                      >
-                        {wishlist.some((item) => item.id === product.id) ? (
-                          <FavoriteIcon
-                            style={{ fontSize: "30px", color: "red" }}
-                          />
-                        ) : (
-                          <FavoriteBorderIcon style={{ fontSize: "30px" }} />
-                        )}
-                      </IconButton>
-                    </div>
-                    <Box className={classes.cardContent}>
-                      <div
-                        style={{
-                          padding: "8px",
-                          display: "flex",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <img
-                          className={classes.img}
-                          src={product.image}
-                          alt=""
-                          width={200}
-                          height={200}
-                        />
-                      </div>
-                      <div style={{ maxWidth: "278px" }}>
-                        <CardContent>
-                          <Typography variant="h6">
-                            <b>Title:</b> {product.title}
-                          </Typography>
-                          <Typography variant="h6">
-                            <b>Price:</b> {product.price}
-                          </Typography>
-                          <Typography variant="h6">
-                            <b>Category:</b> {product.category}
-                          </Typography>
-                          <Typography noWrap variant="h6">
-                            <b>Description:</b> {product.description}
-                          </Typography>
-                          <div className={classes.addToCart}>
-                            <Button
-                              variant="outlined"
-                              onClick={() => handleOpenDialog(product.id)}
-                            >
-                              Remove
-                            </Button>
-                            <Dialog
-                              open={openProductId === product.id}
-                              onClose={handleClose}
-                              aria-labelledby="alert-dialog-title"
-                              aria-describedby="alert-dialog-description"
-                            >
-                              <DialogTitle id="alert-dialog-title">
-                                Confirm Product Removal
-                              </DialogTitle>
-                              <DialogContent>
-                                <DialogContentText id="alert-dialog-description">
-                                  Are you sure you want to delete this product
-                                  from your cart?
-                                </DialogContentText>
-                              </DialogContent>
-                              <DialogActions>
-                                <Button
-                                  onClick={() =>
-                                    handleDeleteProduct(product.id)
-                                  }
-                                >
-                                  Delete
-                                </Button>
-                                <Button onClick={handleClose} autoFocus>
-                                  Cancel
-                                </Button>
-                              </DialogActions>
-                            </Dialog>
-
-                            <div>
-                              <Button
-                                variant="contained"
-                                size="small"
-                                style={{ margin: "3px", height: "24px" }}
-                                onClick={() =>
-                                  dispatch(decrementQuantity(product.id))
-                                }
-                              >
-                                -
-                              </Button>
-                              <span>{product.quantity}</span>
-                              <Button
-                                variant="contained"
-                                size="small"
-                                style={{ margin: "3px", height: "24px" }}
-                                onClick={() =>
-                                  dispatch(incrementQuantity(product.id))
-                                }
-                              >
-                                +
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </div>
-                    </Box>
-                  </Card>
-                </Container>
-              ))
-            )}
-
-            {cart.length > 0 && (
-              <Grid item xs={12}>
-                <div className={classes.billbook}>
-                  <div
-                    style={{ display: "flex", justifyContent: "space-around" }}
-                  >
-                    <h2 style={{ margin: "0" }}>SubTotal:</h2>
-                    <h2 style={{ color: "aliceblue", margin: "0" }}>
-                      {calculateSubtotal().toFixed(2)}
-                    </h2>
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-around",
-                      marginTop: "5px",
-                    }}
-                  >
-                    <h2 style={{ margin: "0" }}>GST-Tax:</h2>
-                    <h2 style={{ color: "aliceblue", margin: "0" }}>{tax()}</h2>
-                  </div>
-                  <hr />
-                  <div
-                    style={{ display: "flex", justifyContent: "space-around" }}
-                  >
-                    <h1 style={{ margin: "0" }}>Total:</h1>
-                    <h1 style={{ color: "aliceblue", margin: "0" }}>
-                      {totalAmount()}
-                    </h1>
-                  </div>
-                  <hr />
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-around",
-                      marginTop: "10px",
-                    }}
-                  >
-                    <Button
-                      variant="contained"
-                      color="success"
-                      onClick={handleCheckOut}
+                <Card
+                  className={classes.card}
+                  sx={{   
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    marginBottom: "10px",
+                  }}
+                >
+                  <div style={{ marginLeft: "auto", height: "32px" }}>
+                    <IconButton
+                      aria-label="add to wishlist"
+                      onClick={() => dispatch(toggleWishlist(product))}
+                      className={classes.wishlist}
                     >
-                      CheckOut
-                    </Button>
+                      {wishlist.some((item) => item.id === product.id) ? (
+                        <FavoriteIcon
+                          style={{ fontSize: "30px", color: "red" }}
+                        />
+                      ) : (
+                        <FavoriteBorderIcon style={{ fontSize: "30px" }} />
+                      )}
+                    </IconButton>
                   </div>
+                  <Box className={classes.cardContent}>
+                    <div
+                      style={{
+                        padding: "8px",
+                        display: "flex",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <img
+                        className={classes.img}
+                        src={product.image}
+                        alt=""
+                        width={200}
+                        height={200}
+                      />
+                    </div>
+                    <div style={{ maxWidth: "278px" }}>
+                      <CardContent>
+                        <Typography variant="h6">
+                          <b>Title:</b> {product.title}
+                        </Typography>
+                        <Typography variant="h6">
+                          <b>Price:</b> {product.price}
+                        </Typography>
+                        <Typography variant="h6">
+                          <b>Category:</b> {product.category}
+                        </Typography>
+                        <Typography noWrap variant="h6">
+                          <b>Description:</b> {product.description}
+                        </Typography>
+                        <div className={classes.addToCart}>
+                          <Button
+                            variant="outlined"
+                            onClick={() => handleOpenDialog(product.id)}
+                          >
+                            Remove
+                          </Button>
+                          <div>
+                            <Button
+                              variant="contained"
+                              size="small"
+                              style={{ margin: "3px", height: "24px" }}
+                              onClick={() =>
+                                dispatch(decrementQuantity(product.id))
+                              }
+                            >
+                              -
+                            </Button>
+                            <span>{product.quantity}</span>
+                            <Button
+                              variant="contained"
+                              size="small"
+                              style={{ margin: "3px", height: "24px" }}
+                              onClick={() =>
+                                dispatch(incrementQuantity(product.id))
+                              }
+                            >
+                              +
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </div>
+                  </Box>
+                </Card>
+              </Container>
+            ))
+          )}
+
+          {cart.length > 0 && (
+            <Grid item xs={12} style={{display:"flex" , justifyContent:"center"}}>
+              <div className={classes.billbook}>
+                <div
+                  style={{ display: "flex", justifyContent: "space-around" }}
+                >
+                  <h2 style={{ margin: "0" }}>SubTotal:</h2>
+                  <h2 style={{ color: "aliceblue", margin: "0" }}>
+                    {calculateSubtotal().toFixed(2)}
+                  </h2>
                 </div>
-              </Grid>
-            )}
-          </Grid>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-around",
+                    marginTop: "5px",
+                  }}
+                >
+                  <h2 style={{ margin: "0" }}>GST-Tax:</h2>
+                  <h2 style={{ color: "aliceblue", margin: "0" }}>{tax()}</h2>
+                </div>
+                <hr />
+                <div
+                  style={{ display: "flex", justifyContent: "space-around" }}
+                >
+                  <h1 style={{ margin: "0" }}>Total:</h1>
+                  <h1 style={{ color: "aliceblue", margin: "0" }}>
+                    {totalAmount()}
+                  </h1>
+                </div>
+                <hr />
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-around",
+                    marginTop: "10px",
+                  }}
+                >
+                  <Button
+                    variant="contained"
+                    color="success"
+                    onClick={handleCheckOut}
+                  >
+                    CheckOut
+                  </Button>
+                </div>
+              </div>
+            </Grid>
+          )}
         </Grid>
       </div>
+
+      {openProductId !== null &&
+        ReactDOM.createPortal(
+          <div className={classes.myPortalModal}>
+            <Dialog
+              open={true}
+              onClose={handleClose}
+              aria-labelledby="alert-dialog-title"
+              aria-describedby="alert-dialog-description"
+            >
+              <DialogTitle id="alert-dialog-title">
+                Confirm Product Removal
+              </DialogTitle>
+              <DialogContent>
+                <DialogContentText id="alert-dialog-description">
+                  Are you sure you want to delete this product from your cart?
+                </DialogContentText>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => handleDeleteProduct(openProductId)}>
+                  Delete
+                </Button>
+                <Button onClick={handleClose} autoFocus>
+                  Cancel
+                </Button>
+              </DialogActions>
+            </Dialog>
+          </div>,
+          document.body
+        )}
     </>
   );
 };

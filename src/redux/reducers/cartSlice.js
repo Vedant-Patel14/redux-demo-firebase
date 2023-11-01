@@ -14,6 +14,7 @@ const cartSlice = createSlice({
         state.cart.push({ ...action.payload, quantity: 1 });
       }
     },
+    
     incrementQuantity: (state, action) => {
       const item = state.cart.find((item) => item.id === action.payload);
       if (item) {
@@ -38,6 +39,7 @@ export const {
   incrementQuantity,
   decrementQuantity,
   removeItem,
+  updateCartItemQuantity, 
 } = cartSlice.actions;
 
 export default cartSlice.reducer;

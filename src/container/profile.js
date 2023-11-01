@@ -28,13 +28,19 @@ const Profile = () => {
     if (currentUser) {
       const uid = currentUser.uid;
       const userRef = doc(db, "users", uid);
+  
       getDoc(userRef)
         .then((docSnapshot) => {
           if (docSnapshot.exists()) {
             const userData = docSnapshot.data();
-            userData.phoneNumber = userData.phoneNumber;
-            userData.photoURL = userData.photoURL || defaultImageUrl;
-            setUserData(userData);
+            console.log("Fetched user data:", userData); 
+            setUserData({
+              displayName: userData.displayName || "",
+              email: userData.email || "",
+              phoneNumber: userData.phoneNumber || "",
+              uid: uid,
+              photoURL: userData.photoURL || defaultImageUrl,
+            });
           } else {
             console.log("No such document!");
           }
@@ -44,6 +50,7 @@ const Profile = () => {
         });
     }
   }, [currentUser]);
+  
 
   const handleImageChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -126,7 +133,7 @@ const Profile = () => {
               >
                 Cancel
               </Button>
-              <div>
+              <div> 
                 <FormControl
                   variant="outlined"
                   sx={{
@@ -182,7 +189,7 @@ const Profile = () => {
                     }
                   />
                   <p style={{ padding: 0, margin: 0 }}>uid:</p>
-                  <TextField 
+                  <TextField
                     id="uid"
                     variant="outlined"
                     fullWidth

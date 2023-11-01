@@ -14,6 +14,7 @@ import { app } from "../firebase/firebase";
 import { Button } from "@mui/material";
 import { getFirestore, setDoc, doc, getDoc } from "firebase/firestore";
 import { Helmet } from "react-helmet";
+import { loginUser } from "../redux/reducers/loginSlice"; 
 
 const useStyles = makeStyles(() => ({
   App: {
@@ -67,6 +68,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const users = useSelector((state) => state.registration.users);
+  const role = ['admin1@gmail.com'];
   const firestore = getFirestore(app);
   const auth = getAuth(app);
   console.log("auth", auth);
@@ -100,7 +102,14 @@ const Login = () => {
     signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
         const user = userCredential.user;
-        dispatch(authenticate({ user }));
+        const userEmail = user.email;
+        let userRole = "user"; 
+
+        if (role.includes(userEmail)) {
+          userRole = "admin";
+        }
+
+        dispatch(authenticate({  email: userEmail, role: userRole  }));
         userRef(
           user.uid,
           user.email,
